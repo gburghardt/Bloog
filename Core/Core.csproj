@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Bloog.Core</AssemblyName>
+    <RootNamespace>Bloog</RootNamespace>
   </PropertyGroup>
 
 </Project>
