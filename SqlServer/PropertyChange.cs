@@ -6,10 +6,10 @@ namespace Bloog.SqlServer
 {
     internal class PropertyChange
     {
-        public object OldValue { get; }
-        public object NewValue { get; }
+        internal object OldValue { get; }
+        internal object NewValue { get; }
 
-        public PropertyChange(object oldValue, object newValue)
+        internal PropertyChange(object oldValue, object newValue)
         {
             OldValue = oldValue;
             NewValue = newValue;
