@@ -21,8 +21,7 @@ namespace Bloog
             }
         }
 
-        public delegate void NameChanged(object sender, PropertyChangedEventArgs<int, string> e);
-        public event NameChanged OnNameChanged;
+        public event EventHandler<PropertyChangedEventArgs<int, string>> OnNameChanged;
 
         public Blog(string name)
         {
