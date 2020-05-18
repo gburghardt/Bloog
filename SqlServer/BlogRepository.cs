@@ -1,8 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Bloog.SqlServer
@@ -25,14 +23,14 @@ namespace Bloog.SqlServer
             SqlCommand = new SqlCommandFactory();
         }
 
-        public void Add(Blog blog)
+        public async void Add(Blog blog)
         {
             using (var connection = new SqlConnection(ConnectionString))
             using (var command = new SqlCommand(InsertStatement, connection))
             {
-                command.Parameters.Add(new SqlParameter("Name", blog.Name));
+                command.Parameters.AddWithValue("Name", blog.Name);
 
-                int newId = (int)command.ExecuteScalar();
+                int newId = (int)await command.ExecuteScalarAsync();
 
                 blog.GetType().GetProperty("Id").SetValue(blog, newId, null);
             }
