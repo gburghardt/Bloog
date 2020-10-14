@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Bloog.SqlServer
+namespace Bloog.Infrastructure
 {
     public interface IAuditor
     {

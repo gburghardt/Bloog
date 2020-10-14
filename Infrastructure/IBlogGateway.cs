@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Bloog.SqlServer
+namespace Bloog.Infrastructure
 {
     public interface IBlogGateway
     {

@@ -2,12 +2,12 @@
 
 [assembly: InternalsVisibleTo("Bloog.SqlServer.Tests")]
 
-namespace Bloog.SqlServer
+namespace Bloog.Infrastructure
 {
     public class PropertyChange
     {
-        internal object OldValue { get; }
-        internal object NewValue { get; }
+        public object OldValue { get; }
+        public object NewValue { get; }
 
         internal PropertyChange(object oldValue, object newValue)
         {

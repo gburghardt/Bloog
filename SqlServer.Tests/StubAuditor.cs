@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Bloog.Infrastructure;
+using System;
 
 namespace Bloog.SqlServer.Tests
 {

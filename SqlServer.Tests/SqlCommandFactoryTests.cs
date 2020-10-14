@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Bloog.Infrastructure;
+using System;
 using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 namespace Bloog.SqlServer.Tests
