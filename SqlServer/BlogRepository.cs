@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -7,58 +6,28 @@ namespace Bloog.SqlServer
 {
     public class BlogRepository : IBlogRepository
     {
-        private const string InsertStatement = @"INSERT INTO [dbo].[Blog] OUTPUT Inserted.Id VALUES (@Name, @CreatedBy, @CreatedOn)";
-        private const string SelectByIdStatement = @"SELECT [Name] FROM [dbo].[Blog] WHERE [Id] = @Id";
-
+        private readonly IBlogGateway gateway;
         private readonly Dictionary<int, Dictionary<string, PropertyChange>> Updates = new Dictionary<int, Dictionary<string, PropertyChange>>();
 
-        private IAuditor Auditor { get; }
-        private string ConnectionString { get; }
-        internal SqlCommandFactory SqlCommand { get; }
-
-        public BlogRepository(IAuditor auditor, string connectionString)
+        public BlogRepository(IBlogGateway gateway)
         {
-            if (string.IsNullOrWhiteSpace(connectionString))
-                throw new ArgumentNullException(nameof(connectionString));
-
-            Auditor = auditor ?? throw new ArgumentNullException(nameof(auditor));
-            ConnectionString = connectionString;
-            SqlCommand = new SqlCommandFactory(auditor);
+            this.gateway = gateway ?? throw new ArgumentNullException(nameof(gateway));
         }
 
         public async void AddAsync(Blog blog)
         {
-            using (var connection = new SqlConnection(ConnectionString))
-            using (var command = new SqlCommand(InsertStatement, connection))
-            {
-                await connection.OpenAsync();
-                command.Parameters.AddWithValue("Name", blog.Name);
-                command.Parameters.AddWithValue("Creator", Auditor.UserId);
-                command.Parameters.AddWithValue("CreatedOn", Auditor.Now());
+            int newId = await gateway.CreateBlogAsync(blog.Name);
 
-                int newId = (int)await command.ExecuteScalarAsync();
-
-                blog.GetType().GetProperty("Id").SetValue(blog, newId, null);
-            }
+            blog.GetType().GetProperty("Id").SetValue(blog, newId, null);
         }
 
         public async Task<Blog> FindAsync(int id)
         {
-            using (var connection = new SqlConnection(ConnectionString))
-            using (var command = new SqlCommand(SelectByIdStatement, connection))
-            {
-                await connection.OpenAsync();
-                command.Parameters.Add(new SqlParameter("Id", id));
+            var blog = await gateway.FindBlogAsync(id);
 
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    var blog = new Blog(id, reader["Name"].ToString());
+            blog.OnNameChanged += HandleBlogNameChanged;
 
-                    blog.OnNameChanged += HandleBlogNameChanged;
-
-                    return blog;
-                }
-            }
+            return blog;
         }
 
         private void HandleBlogNameChanged(object sender, PropertyChangedEventArgs<int, string> e)
@@ -74,22 +43,9 @@ namespace Bloog.SqlServer
             Updates.Clear();
         }
 
-        public async void SaveChanges()
+        public async void SaveChangesAsync()
         {
-            if (Updates.Count == 0)
-                return;
-
-            using (var connection = new SqlConnection(ConnectionString))
-            {
-                await connection.OpenAsync();
-
-                foreach (var update in Updates)
-                {
-                    var command = SqlCommand.CreateUpdateStatement(update.Value, "[dbo].[Blog]", "Id", update.Key);
-
-                    await command.ExecuteNonQueryAsync();
-                }
-            }
+            await gateway.SaveChangesAsync(Updates);
         }
 
         #region IDisposable Support

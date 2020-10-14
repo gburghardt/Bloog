@@ -4,7 +4,7 @@
 
 namespace Bloog.SqlServer
 {
-    internal class PropertyChange
+    public class PropertyChange
     {
         internal object OldValue { get; }
         internal object NewValue { get; }
