@@ -7,20 +7,23 @@ namespace Bloog.SqlServer
 {
     public class BlogRepository : IDisposable
     {
-        private const string InsertStatement = @"INSERT INTO [dbo].[Blog] OUTPUT Inserted.Id VALUES (@Name)";
+        private const string InsertStatement = @"INSERT INTO [dbo].[Blog] OUTPUT Inserted.Id VALUES (@Name, @CreatedBy, @CreatedOn)";
         private const string SelectByIdStatement = @"SELECT [Name] FROM [dbo].[Blog] WHERE [Id] = @Id";
 
         private readonly Dictionary<int, Dictionary<string, PropertyChange>> Updates = new Dictionary<int, Dictionary<string, PropertyChange>>();
+
+        private IAuditor Auditor { get; }
         private string ConnectionString { get; }
         internal SqlCommandFactory SqlCommand { get; }
 
-        public BlogRepository(string connectionString)
+        public BlogRepository(IAuditor auditor, string connectionString)
         {
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new ArgumentNullException(nameof(connectionString));
 
+            Auditor = auditor ?? throw new ArgumentNullException(nameof(auditor));
             ConnectionString = connectionString;
-            SqlCommand = new SqlCommandFactory();
+            SqlCommand = new SqlCommandFactory(auditor);
         }
 
         public async void Add(Blog blog)
@@ -29,6 +32,8 @@ namespace Bloog.SqlServer
             using (var command = new SqlCommand(InsertStatement, connection))
             {
                 command.Parameters.AddWithValue("Name", blog.Name);
+                command.Parameters.AddWithValue("Creator", Auditor.UserId);
+                command.Parameters.AddWithValue("CreatedOn", Auditor.Now());
 
                 int newId = (int)await command.ExecuteScalarAsync();
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -9,20 +10,35 @@ namespace Bloog.SqlServer
 {
     internal class SqlCommandFactory
     {
+        private readonly IAuditor auditor;
+
+        public SqlCommandFactory(IAuditor auditor)
+        {
+            this.auditor = auditor ?? throw new ArgumentNullException(nameof(auditor));
+        }
+
+        private const string UpdateStatementTemplate = "UPDATE {0} SET {1} WHERE [{2}] = @{2}";
+
         internal SqlCommand CreateUpdateStatement(Dictionary<string, PropertyChange> changes, string tableName, string keyName, object keyValue)
         {
+            if (changes.Count == 0)
+                throw new InvalidOperationException("No changes detected");
+
             var command = new SqlCommand();
-            var sql = new StringBuilder($"UPDATE {tableName} SET ");
+            var columns = new List<string>();
 
             foreach (var change in changes)
             {
-                sql.Append($"[{change.Key}] = @{change.Key}");
-                command.Parameters.AddWithValue("@" + change.Key, change.Value.NewValue);
+                columns.Add($"[{change.Key}] = @{change.Key}");
+                command.Parameters.AddWithValue(change.Key, change.Value.NewValue);
             }
 
-            sql.Append($" WHERE [{keyName}] = @{keyName}");
-            command.CommandText = sql.ToString();
+            columns.Add("[UpdatedBy] = @UpdatedBy");
+            command.Parameters.AddWithValue("UpdatedBy", auditor.UserId);
+            columns.Add("[UpdatedOn] = @UpdatedOn");
+            command.Parameters.AddWithValue("UpdatedOn", auditor.Now());
             command.Parameters.AddWithValue(keyName, keyValue);
+            command.CommandText = string.Format(UpdateStatementTemplate, tableName, string.Join(", ", columns), keyName);
 
             return command;
         }
