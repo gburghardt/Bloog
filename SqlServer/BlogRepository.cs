@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Bloog.SqlServer
 {
-    public class BlogRepository : IDisposable
+    public class BlogRepository : IBlogRepository
     {
         private const string InsertStatement = @"INSERT INTO [dbo].[Blog] OUTPUT Inserted.Id VALUES (@Name, @CreatedBy, @CreatedOn)";
         private const string SelectByIdStatement = @"SELECT [Name] FROM [dbo].[Blog] WHERE [Id] = @Id";
@@ -26,11 +26,12 @@ namespace Bloog.SqlServer
             SqlCommand = new SqlCommandFactory(auditor);
         }
 
-        public async void Add(Blog blog)
+        public async void AddAsync(Blog blog)
         {
             using (var connection = new SqlConnection(ConnectionString))
             using (var command = new SqlCommand(InsertStatement, connection))
             {
+                await connection.OpenAsync();
                 command.Parameters.AddWithValue("Name", blog.Name);
                 command.Parameters.AddWithValue("Creator", Auditor.UserId);
                 command.Parameters.AddWithValue("CreatedOn", Auditor.Now());
@@ -41,17 +42,17 @@ namespace Bloog.SqlServer
             }
         }
 
-        public async Task<Blog> Find(int blogId)
+        public async Task<Blog> FindAsync(int id)
         {
             using (var connection = new SqlConnection(ConnectionString))
             using (var command = new SqlCommand(SelectByIdStatement, connection))
             {
                 await connection.OpenAsync();
-                command.Parameters.Add(new SqlParameter("Id", blogId));
+                command.Parameters.Add(new SqlParameter("Id", id));
 
                 using (var reader = await command.ExecuteReaderAsync())
                 {
-                    var blog = new Blog(blogId, reader["Name"].ToString());
+                    var blog = new Blog(id, reader["Name"].ToString());
 
                     blog.OnNameChanged += HandleBlogNameChanged;
 

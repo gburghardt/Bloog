@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 [assembly: InternalsVisibleTo("Bloog.SqlServer.Tests")]
 
@@ -10,6 +9,7 @@ namespace Bloog.SqlServer
 {
     internal class SqlCommandFactory
     {
+        private const string UpdateStatementTemplate = "UPDATE {0} SET {1} WHERE [{2}] = @{2}";
         private readonly IAuditor auditor;
 
         public SqlCommandFactory(IAuditor auditor)
@@ -17,13 +17,11 @@ namespace Bloog.SqlServer
             this.auditor = auditor ?? throw new ArgumentNullException(nameof(auditor));
         }
 
-        private const string UpdateStatementTemplate = "UPDATE {0} SET {1} WHERE [{2}] = @{2}";
-
         internal SqlCommand CreateUpdateStatement(Dictionary<string, PropertyChange> changes, string tableName, string keyName, object keyValue)
         {
             if (changes.Count == 0)
                 throw new InvalidOperationException("No changes detected");
-
+            
             var command = new SqlCommand();
             var columns = new List<string>();
 
