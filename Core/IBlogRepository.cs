@@ -6,6 +6,6 @@ namespace Bloog
     public interface IBlogRepository : IDisposable
     {
         void AddAsync(Blog blog);
-        Task<Blog> FindAsync(int id);
+        Task<Blog> FindAsync(Guid id);
     }
 }

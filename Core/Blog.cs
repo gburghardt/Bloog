@@ -7,7 +7,10 @@ namespace Bloog
     /// </summary>
     public class Blog
     {
-        private int Id { get; set; }
+        /// <summary>
+        /// Returns the unique identifier for this blog.
+        /// </summary>
+        public Guid Id { get; }
 
         private string name;
 
@@ -24,14 +27,14 @@ namespace Bloog
 
                 var oldName = name;
                 name = value;
-                OnNameChanged?.Invoke(this, new PropertyChangedEventArgs<int, string>(Id, oldName, name));
+                OnNameChanged?.Invoke(this, new PropertyChangedEventArgs<Guid, string>(Id, oldName, name));
             }
         }
 
         /// <summary>
         /// Event triggered when the name of this blog gets changed.
         /// </summary>
-        public event EventHandler<PropertyChangedEventArgs<int, string>> OnNameChanged;
+        public event EventHandler<PropertyChangedEventArgs<Guid, string>> OnNameChanged;
 
         /// <summary>
         /// Initializes a new blog.
@@ -43,6 +46,7 @@ namespace Bloog
                 throw new ArgumentNullException(nameof(name));
 
             Name = name;
+            Id = Guid.NewGuid();
         }
 
         /// <summary>
@@ -50,7 +54,7 @@ namespace Bloog
         /// </summary>
         /// <param name="id">Identifier for this blog.</param>
         /// <param name="name">Name of this blog.</param>
-        public Blog(int id, string name) : this(name)
+        public Blog(Guid id, string name) : this(name)
         {
             Id = id;
         }

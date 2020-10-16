@@ -7,7 +7,7 @@ namespace Bloog.Infrastructure
     public class BlogRepository : IBlogRepository
     {
         private readonly IBlogGateway gateway;
-        private readonly Dictionary<int, Dictionary<string, PropertyChange>> Updates = new Dictionary<int, Dictionary<string, PropertyChange>>();
+        private readonly Dictionary<Guid, Dictionary<string, PropertyChange>> Updates = new Dictionary<Guid, Dictionary<string, PropertyChange>>();
 
         public BlogRepository(IBlogGateway gateway)
         {
@@ -21,7 +21,7 @@ namespace Bloog.Infrastructure
             blog.GetType().GetProperty("Id").SetValue(blog, newId, null);
         }
 
-        public async Task<Blog> FindAsync(int id)
+        public async Task<Blog> FindAsync(Guid id)
         {
             var blog = await gateway.FindBlogAsync(id);
 
@@ -30,7 +30,7 @@ namespace Bloog.Infrastructure
             return blog;
         }
 
-        private void HandleBlogNameChanged(object sender, PropertyChangedEventArgs<int, string> e)
+        private void HandleBlogNameChanged(object sender, PropertyChangedEventArgs<Guid, string> e)
         {
             if (!Updates.ContainsKey(e.Key))
                 Updates[e.Key] = new Dictionary<string, PropertyChange>();
@@ -83,19 +83,5 @@ namespace Bloog.Infrastructure
             // GC.SuppressFinalize(this);
         }
         #endregion
-
-        //public void Dispose()
-        //{
-        //    Dispose(true);
-        //    GC.SuppressFinalize(this);
-        //}
-
-        //private void Dispose(bool disposing)
-        //{
-        //    if (!disposing)
-        //        return;
-
-        //    DiscardChanges();
-        //}
     }
 }

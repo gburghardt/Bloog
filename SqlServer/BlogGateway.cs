@@ -41,7 +41,7 @@ namespace Bloog.SqlServer
             }
         }
 
-        public async Task<Blog> FindBlogAsync(int id)
+        public async Task<Blog> FindBlogAsync(Guid id)
         {
             using (var connection = new SqlConnection(ConnectionString))
             using (var command = new SqlCommand(SelectByIdStatement, connection))
@@ -58,12 +58,12 @@ namespace Bloog.SqlServer
 
         private Blog MapToBlog(IDataReader reader, string columnNamePrefix = "")
         {
-            var blog = new Blog(reader.GetInt32(columnNamePrefix + "Id"), reader[columnNamePrefix + "Name"].ToString());
+            var blog = new Blog(reader.GetGuid(columnNamePrefix + "Id"), reader.GetString(columnNamePrefix + "Name"));
 
             return blog;
         }
 
-        public async Task SaveChangesAsync(Dictionary<int, Dictionary<string, PropertyChange>> updates)
+        public async Task SaveChangesAsync(Dictionary<Guid, Dictionary<string, PropertyChange>> updates)
         {
             if (updates.Count == 0)
                 return;

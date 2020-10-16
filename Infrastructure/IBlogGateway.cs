@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Bloog.Infrastructure
@@ -6,7 +7,7 @@ namespace Bloog.Infrastructure
     public interface IBlogGateway
     {
         Task<int> CreateBlogAsync(string name);
-        Task<Blog> FindBlogAsync(int id);
-        Task SaveChangesAsync(Dictionary<int, Dictionary<string, PropertyChange>> updates);
+        Task<Blog> FindBlogAsync(Guid id);
+        Task SaveChangesAsync(Dictionary<Guid, Dictionary<string, PropertyChange>> updates);
     }
 }
