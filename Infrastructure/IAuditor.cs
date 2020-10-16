@@ -7,7 +7,7 @@ namespace Bloog.Infrastructure
         /// <summary>
         /// Returns the current user Id used to set created/updated by info
         /// </summary>
-        int UserId { get; }
+        Guid UserId { get; }
 
         /// <summary>
         /// Returns the current date and time in UTC

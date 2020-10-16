@@ -30,6 +30,11 @@ namespace Bloog.Infrastructure
             return blog;
         }
 
+        public async Task<IEnumerable<Blog>> FindByUserAsync(string username)
+        {
+            return await gateway.FindByUser(username);
+        }
+
         private void HandleBlogNameChanged(object sender, PropertyChangedEventArgs<Guid, string> e)
         {
             if (!Updates.ContainsKey(e.Key))

@@ -11,6 +11,10 @@ namespace Bloog.SqlServer
     {
         private const string InsertStatement = @"INSERT INTO [dbo].[Blog] OUTPUT Inserted.Id VALUES (@Name, @CreatedBy, @CreatedOn)";
         private const string SelectByIdStatement = @"SELECT [Name], [Id] FROM [dbo].[Blog] WHERE [Id] = @Id";
+        private const string SelectByUsernameStatement = @"SELECT [Name], [Id]
+                                                           FROM [dbo].[Blog]
+                                                               JOIN [dbo].[User] ON [dbo].[User].[Id] = [dbo].[Blog].[CreateUserId]
+                                                           WHERE [dbo].[User].[Username] = @Username";
 
         private IAuditor Auditor { get; }
         private string ConnectionString { get; }
@@ -53,6 +57,28 @@ namespace Bloog.SqlServer
                 {
                     return MapToBlog(reader);
                 }
+            }
+        }
+
+        public async Task<IEnumerable<Blog>> FindByUser(string username)
+        {
+            using (var connection = new SqlConnection(ConnectionString))
+            using (var command = new SqlCommand(SelectByUsernameStatement, connection))
+            {
+                var results = new List<Blog>();
+
+                await connection.OpenAsync();
+                command.Parameters.AddWithValue("Username", username);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (reader.Read())
+                    {
+                        results.Add(MapToBlog(reader));
+                    }
+                }
+
+                return results.AsReadOnly();
             }
         }
 

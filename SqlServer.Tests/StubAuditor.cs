@@ -5,21 +5,21 @@ namespace Bloog.SqlServer.Tests
 {
     class StubAuditor : IAuditor
     {
-        public int UserId { get; }
+        public Guid UserId { get; }
 
         private readonly Func<DateTime> currentDateTime;
 
-        public StubAuditor() : this(1)
+        public StubAuditor() : this(Guid.NewGuid())
         {
         }
 
-        public StubAuditor(int userId)
+        public StubAuditor(Guid userId)
         {
             UserId = userId;
             currentDateTime = () => DateTime.UtcNow;
         }
 
-        public StubAuditor(int userId, Func<DateTime> currentDateTime)
+        public StubAuditor(Guid userId, Func<DateTime> currentDateTime)
         {
             UserId = userId;
             this.currentDateTime = currentDateTime;

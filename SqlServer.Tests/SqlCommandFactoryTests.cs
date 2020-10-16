@@ -11,7 +11,7 @@ namespace Bloog.SqlServer.Tests
         public void UpdateStatementTest()
         {
             var expectedSql = @"UPDATE [dbo].[Blog] SET [Name] = @Name, [UpdatedBy] = @UpdatedBy, [UpdatedOn] = @UpdatedOn WHERE [Id] = @Id";
-            var expectedUserId = 3;
+            var expectedUserId = Guid.NewGuid();
             var expectedCreateDate = DateTime.Now;
             var auditor = new StubAuditor(expectedUserId, () => expectedCreateDate);
             var factory = new SqlCommandFactory(auditor);
