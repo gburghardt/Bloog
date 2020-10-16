@@ -16,7 +16,7 @@ namespace Bloog.Infrastructure
 
         public async void AddAsync(Blog blog)
         {
-            int newId = await gateway.CreateBlogAsync(blog.Name);
+            int newId = await gateway.CreateBlogAsync(blog.Id, blog.Name);
 
             blog.GetType().GetProperty("Id").SetValue(blog, newId, null);
         }

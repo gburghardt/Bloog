@@ -7,36 +7,31 @@ using System.Threading.Tasks;
 
 namespace Bloog.SqlServer
 {
-    internal class BlogGateway : IBlogGateway
+    internal class BlogGateway : BaseGateway, IBlogGateway
     {
-        private const string InsertStatement = @"INSERT INTO [dbo].[Blog] OUTPUT Inserted.Id VALUES (@Name, @CreatedBy, @CreatedOn)";
+        private const string InsertStatement = @"INSERT INTO [dbo].[Blog] (@Id, @Name, @CreatedBy, @CreatedOn)";
+
         private const string SelectByIdStatement = @"SELECT [Name], [Id] FROM [dbo].[Blog] WHERE [Id] = @Id";
+
         private const string SelectByUsernameStatement = @"SELECT [Name], [Id]
                                                            FROM [dbo].[Blog]
                                                                JOIN [dbo].[User] ON [dbo].[User].[Id] = [dbo].[Blog].[CreateUserId]
                                                            WHERE [dbo].[User].[Username] = @Username";
 
-        private IAuditor Auditor { get; }
-        private string ConnectionString { get; }
-
         private readonly SqlCommandFactory commandFactory;
 
-        internal BlogGateway(IAuditor auditor, string connectionString)
+        internal BlogGateway(IAuditor auditor, string connectionString) : base(auditor, connectionString)
         {
-            if (string.IsNullOrWhiteSpace(connectionString))
-                throw new ArgumentNullException(nameof(connectionString));
-
-            Auditor = auditor ?? throw new ArgumentNullException(nameof(auditor));
-            ConnectionString = connectionString;
             commandFactory = new SqlCommandFactory(auditor);
         }
 
-        public async Task<int> CreateBlogAsync(string name)
+        public async Task<int> CreateBlogAsync(Guid id, string name)
         {
-            using (var connection = new SqlConnection(ConnectionString))
+            using (var connection = await GetOpenConnectionAsync())
             using (var command = new SqlCommand(InsertStatement, connection))
             {
                 await connection.OpenAsync();
+                command.Parameters.AddWithValue("Id", id);
                 command.Parameters.AddWithValue("Name", name);
                 command.Parameters.AddWithValue("Creator", Auditor.UserId);
                 command.Parameters.AddWithValue("CreatedOn", Auditor.Now());
@@ -47,7 +42,7 @@ namespace Bloog.SqlServer
 
         public async Task<Blog> FindBlogAsync(Guid id)
         {
-            using (var connection = new SqlConnection(ConnectionString))
+            using (var connection = await GetOpenConnectionAsync())
             using (var command = new SqlCommand(SelectByIdStatement, connection))
             {
                 await connection.OpenAsync();
@@ -62,7 +57,7 @@ namespace Bloog.SqlServer
 
         public async Task<IEnumerable<Blog>> FindByUser(string username)
         {
-            using (var connection = new SqlConnection(ConnectionString))
+            using (var connection = await GetOpenConnectionAsync())
             using (var command = new SqlCommand(SelectByUsernameStatement, connection))
             {
                 var results = new List<Blog>();
@@ -94,7 +89,7 @@ namespace Bloog.SqlServer
             if (updates.Count == 0)
                 return;
 
-            using (var connection = new SqlConnection(ConnectionString))
+            using (var connection = await GetOpenConnectionAsync())
             {
                 await connection.OpenAsync();
 
