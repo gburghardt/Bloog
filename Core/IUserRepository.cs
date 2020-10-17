@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Bloog.Infrastructure
+namespace Bloog
 {
     public interface IUserRepository
     {
