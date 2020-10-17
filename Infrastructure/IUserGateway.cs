@@ -7,5 +7,6 @@ namespace Bloog.Infrastructure
     {
         Task CreateUserAsync(Guid id, string username);
         Task<User> FindUserAsync(Guid id);
+        Task<bool> DeleteUserAsync(Guid id);
     }
 }

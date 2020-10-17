@@ -7,7 +7,9 @@ namespace Bloog.SqlServer
 {
     class UserGateway : BaseGateway, IUserGateway
     {
+        private const string DeleteByIdStatement = "DELETE FROM [dbo].[User] WHERE [Id] = @Id";
         private const string InsertStatement = "INSERT into [dbo].[User] VALUES (@Id, @Username, @CreateUserId, @CreateDate, NULL, NULL)";
+        private const string SelectByIdStatement = "SELECT [Id], [Username] FROM [dbo].[User] WHERE [Id] = @Id";
 
         internal UserGateway(IAuditor auditor, string connectionString) : base(auditor, connectionString)
         {
@@ -26,9 +28,41 @@ namespace Bloog.SqlServer
             }
         }
 
-        public Task<User> FindUserAsync(Guid id)
+        public async Task<User> FindUserAsync(Guid id)
         {
-            throw new NotImplementedException();
+            using (var connection = await GetOpenConnectionAsync())
+            using (var command = new SqlCommand(SelectByIdStatement, connection))
+            {
+                command.Parameters.AddWithValue("Id", id);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        return MapToUser(reader);
+                    }
+
+                    return null;
+                }
+            }
+        }
+
+        public async Task<bool> DeleteUserAsync(Guid id)
+        {
+            using (var connection = await GetOpenConnectionAsync())
+            using (var command = new SqlCommand(DeleteByIdStatement, connection))
+            {
+                command.Parameters.AddWithValue("Id", id);
+
+                var rowsAffected = await command.ExecuteNonQueryAsync();
+
+                return rowsAffected > 0;
+            }
+        }
+
+        private User MapToUser(SqlDataReader reader)
+        {
+            return new User(reader.GetGuid("Id"), reader.GetString("Username"));
         }
     }
 }
